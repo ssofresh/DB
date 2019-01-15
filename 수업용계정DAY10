@@ -422,7 +422,89 @@ VALUES ('A01', '홍길동', '010-1234-5678', DEFAULT);
 SELECT * FROM PHONEBOOK;
 
 
+-- 데이터 딕셔너리 (데이터 사전)
+-- 사용자가 생성한 모든 객체정보는 테이블 단위로 저장되고 있음
+-- 예를 들면, 사용자가 설정한 제약조건도 저장되고 있음.
+-- USER_CONSTRAINTS
+DESC USER_CONSTRAINTS;
 
+SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE, TABLE_NAME
+FROM USER_CONSTRAINTS
+WHERE TABLE_NAME = 'PHONEBOOK';
+
+-- CONSTRAINT TYPE
+-- P : PRIMARY KEY
+-- U : UNIQUE
+-- C : CHECK, NOT NULL
+-- R : FOREIGN KEY
+
+-- 서브쿼리를 사용해서 테이블을 만들 때, 데이터는 복사하지 않고 
+-- 테이블 구조만 복사하고자 할 때
+-- 서브쿼리의 WHERE 절에 WHERE 1 = 0 하면 됨
+
+CREATE TABLE DEPT_COPY
+AS
+SELECT * FROM DEPARTMENT
+WHERE 1 = 0;
+
+SELECT * FROM DEPT_COPY;
+
+DESC DEPT_COPY;
+
+-- 서브쿼리로 새 테이블을 만들 때, 서브 쿼리의 컬럼명을 사용하지 않고 
+-- 새 테이블에서 컬럼명을 다르게 구성할 수도 있다.
+
+-- 첫번째 방법
+CREATE TABLE JOB_COPY (직급코드, 직급명, 최저급여, 최고급여)
+AS 
+SELECT * FROM JOB;
+
+DESC JOB_COPY;
+
+SELECT * FROM JOB_COPY;
+
+-- 두번째 방법
+CREATE TABLE DCOPY
+AS
+SELECT DEPT_ID AS DID, DEPT_NAME AS DNAME, LOC_ID LID
+FROM DEPARTMENT;
+
+DESC DCOPY;
+
+SELECT * FROM DCOPY;
+
+-- 서브쿼리로 데이블을 만들 때, 컬럼명을 바꾸면서 제약조건도 추가할 수 있음
+-- 외래키 설정(FOREIGN KEY) 제약조건은 추가할 수 없음
+CREATE TABLE TSUB3 (
+        EID PRIMARY KEY,
+        ENAME,
+        SALARY CHECK (SALARY > 2000000),    -- 에러 : 급여에 2백만보다 작은 값이 존재함
+        DID,-- REFERENCES DEPARTMENT,  --FOREIGN KEY 제약조건을 사용할 수 없음
+        JTITLE-- NOT NULL)    -- 에러 : 서브쿼리 결과에 NULL 이 존재함
+        )
+AS
+SELECT EMP_ID, EMP_NAME, SALARY, DEPT_ID, JOB_TITLE
+FROM EMPLOYEE
+LEFT JOIN DEPARTMENT USING (DEPT_ID)
+LEFT JOIN JOB USING (JOB_ID);
+
+-- 해결
+CREATE TABLE TSUB3 (
+        EID PRIMARY KEY,
+        ENAME,
+        SALARY CHECK (SALARY > 2000000),    -- 에러 : 급여에 2백만보다 작은 값이 존재함
+        DID,-- REFERENCES DEPARTMENT,  --FOREIGN KEY 제약조건을 사용할 수 없음
+        JTITLE-- NOT NULL)    -- 에러 : 서브쿼리 결과에 NULL 이 존재함
+        )
+AS
+SELECT EMP_ID, EMP_NAME, SALARY, DEPT_ID, NVL(JOB_TITLE, '미정')
+FROM EMPLOYEE
+LEFT JOIN DEPARTMENT USING (DEPT_ID)
+LEFT JOIN JOB USING (JOB_ID)
+WHERE SALARY > 2000000;
+
+SELECT *
+FROM TSUB3;
 
 
 
