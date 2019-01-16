@@ -168,8 +168,60 @@ WHERE DEPARTMENT_NAME = '국어국문학과';
 SELECT ROUND(CAPACITY + CAPACITY*0.1)
 FROM TB_DEPARTMENT;
 
-ALTER 
+UPDATE TB_DEPARTMENT
+SET CAPACITY = ROUND(CAPACITY + CAPACITY*0.1);
 
+SELECT CAPACITY
+FROM TB_DEPARTMENT;
+
+--5. 학번 A413042 인 박건우 학생의 주소가 "서울시 종로구 숭인동 181-21 "로 변경되었다고 핚다. 주소지를 정정하기 위해 사용핛 SQL 문을 작성하시오.
+UPDATE TB_STUDENT
+SET STUDENT_ADDRESS = '서울시 종로구 숭인동 181-21'
+WHERE STUDENT_NO = 'A413042'; 
+
+SELECT *
+FROM TB_STUDENT
+WHERE STUDENT_NO = 'A413042'; 
+
+--6. 주민등록번호 보호법에 따라 학생정보 테이블에서 주민번호 뒷자리를 저장하지 않기로 결정하였다. 이 내용을 반영핛 적젃핚 SQL 문장을 작성하시오. 
+UPDATE TB_STUDENT
+SET STUDENT_SSN = SUBSTR(STUDENT_SSN, 1, 6);
+
+SELECT STUDENT_SSN
+FROM TB_STUDENT;
+
+--7. 의학과 김명훈 학생은 2005년 1학기에 자신이 수강핚 '피부생리학' 점수가 잘못되었다는 것을 발견하고는 정정을 요청하였다. 담당 교수의 확인 받은 결과 해당 과목의 학점을 3.5 로 변경키로 결정되었다. 적젃핚 SQL 문을 작성하시오.
+UPDATE TB_GRADE
+SET POINT = '3.5'
+WHERE STUDENT_NO = (SELECT STUDENT_NO
+                    FROM TB_STUDENT
+                    WHERE STUDENT_NAME = '김명훈' 
+                    AND DEPARTMENT_NO = (SELECT DEPARTMENT_NO
+                                         FROM TB_DEPARTMENT
+                                         WHERE DEPARTMENT_NAME = '의학과'))
+AND TERM_NO = '200501'
+AND CLASS_NO = (SELECT CLASS_NO
+                FROM TB_CLASS
+                WHERE CLASS_NAME = '피부생리학');
+
+
+SELECT POINT, STUDENT_NAME
+FROM TB_STUDENT
+JOIN TB_GRADE USING (STUDENT_NO)
+JOIN TB_CLASS USING (CLASS_NO)
+WHERE TERM_NO = '200501' AND CLASS_NAME = '피부생리학';
+
+--8. 성적 테이블(TB_GRADE) 에서 휴학생들의 성적항목을 제거하시오
+UPDATE TB_GRADE
+SET POINT = NULL
+WHERE STUDENT_NO IN (SELECT STUDENT_NO
+                     FROM TB_STUDENT
+                     WHERE ABSENCE_YN = 'Y');
+
+SELECT STUDENT_NAME, ABSENCE_YN, POINT
+FROM TB_STUDENT
+JOIN TB_GRADE USING (STUDENT_NO)
+WHERE ABSENCE_YN = 'Y';
 
 
 
